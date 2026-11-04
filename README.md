@@ -19,6 +19,6 @@ River
 
 Significant trees
 
-Basket
+Baskets
 
 These real-world GeoJSON and JSON datasets can be used to explore the application's features and test the map generation workflow.
