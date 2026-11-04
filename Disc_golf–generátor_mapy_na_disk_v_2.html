@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="cs"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Disc golf – generátor mapy na disk</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f3f1ea;--pn:#fff;--fg:#1d2a1f;--mu:#6b6f63;--bd:#d9d5c6;--ac:#1d4a2a;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14180f;--pn:#1e2418;--fg:#ece8d8;--mu:#a2a692;--bd:#38402e;--ac:#8fc46a}}
+:root[data-theme="dark"]{--bg:#14180f;--pn:#1e2418;--fg:#ece8d8;--mu:#a2a692;--bd:#38402e;--ac:#8fc46a}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.4 system-ui,"Segoe UI",Arial,sans-serif}
+.app{display:flex;flex-wrap:wrap;gap:16px;padding:16px;align-items:flex-start;max-width:1240px;margin:auto}
+aside{flex:1 1 340px;max-width:430px;min-width:0}
+main{flex:2 1 380px;min-width:0;position:sticky;top:8px}
+details{background:var(--pn);border:1px solid var(--bd);border-radius:10px;margin-bottom:10px;padding:8px 12px}
+summary{font-weight:700;cursor:pointer}
+label{display:flex;align-items:center;gap:6px;margin:6px 0;font-size:13px}
+label>span{flex:0 0 100px;color:var(--mu)}
+input[type=text],input[type=number],select{flex:1;min-width:0;padding:5px 7px;border:1px solid var(--bd);border-radius:6px;background:var(--bg);color:var(--fg);font:inherit}
+input[type=range]{flex:1;min-width:60px}
+input[type=color]{width:34px;height:28px;padding:0;border:1px solid var(--bd);border-radius:6px;background:none}
+button{padding:6px 10px;border:1px solid var(--bd);border-radius:6px;background:var(--bg);color:var(--fg);font:inherit;cursor:pointer}
+button.p{background:var(--ac);color:var(--pn);border-color:var(--ac);font-weight:700}
+.ly{border:1px solid var(--bd);border-radius:8px;padding:6px;margin:8px 0}
+.r{display:flex;gap:6px;align-items:center;flex-wrap:wrap}.r label{margin:2px 0}
+.mu{color:var(--mu);font-size:12px;margin:4px 0}
+#v{background:var(--pn);border:1px solid var(--bd);border-radius:12px;padding:12px}
+#v svg{display:block;width:100%;max-width:740px;height:auto;margin:auto}
+#legenda,#tabulka,#meritko{cursor:grab;touch-action:none}
+.hr{display:grid;grid-template-columns:28px 1fr 70px;gap:6px;align-items:center;margin:3px 0}
+/* vzhled stránky */
+:root{--bg:#f2efe4;--pn:#fffdf7;--fg:#1f2a1e;--mu:#6a6f5e;--bd:#ddd8c4;--or:#e58a24;--f:"Nunito","Segoe UI",system-ui,sans-serif}
+body,input,select,button{font-family:var(--f)}
+body{font-size:14px;line-height:1.45;-webkit-font-smoothing:antialiased}
+.top{display:flex;align-items:baseline;gap:14px;padding:14px 22px;background:#1d4a2a;color:#f4eedc;border-bottom:3px solid var(--or)}
+.top b{font-size:18px;font-weight:900;letter-spacing:.16em;text-transform:uppercase}
+.top span{font-size:13px;font-weight:600;opacity:.85}
+.app{max-width:1360px;gap:20px;padding:20px}
+aside{flex:0 0 400px;max-width:100%}
+main{flex:1 1 360px;align-self:flex-start;top:16px}
+details{padding:0;border-radius:14px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+summary{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;font-size:14px;font-weight:800;letter-spacing:.02em;list-style:none}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"▾";color:var(--mu);transition:transform .15s}
+details:not([open]) summary::after{transform:rotate(-90deg)}
+details>:not(summary){margin-left:16px;margin-right:16px}
+details>:last-child{margin-bottom:14px}
+details>.mu,details>.hr{margin-left:16px;margin-right:16px}
+label{gap:8px;font-size:13px}
+label>span{flex:0 0 108px;font-weight:600}
+input[type=text],input[type=number],select{height:32px;padding:0 10px;border-radius:8px;font-size:13px}
+input[type=color]{width:32px;height:28px;border-radius:6px;cursor:pointer}
+input[type=range],input[type=checkbox]{accent-color:var(--or)}
+input[type=file]{max-width:100%;font-size:12px;color:var(--mu)}
+input[type=file]::file-selector-button{height:28px;margin-right:8px;padding:0 10px;border:1px solid var(--bd);border-radius:6px;background:var(--bg);color:var(--fg);font:700 12px var(--f);cursor:pointer}
+button{height:32px;padding:0 12px;border-radius:8px;font-size:13px;font-weight:700}
+button:hover{border-color:var(--ac)}
+button.p{background:var(--or);border-color:var(--or);color:#1d2a1a}
+:is(input,select,button):focus-visible{outline:2px solid var(--or);outline-offset:1px}
+.ly{padding:10px;border-radius:12px;background:var(--bg)}
+.ly input[type=text]{font-weight:700}.ly label{font-size:12px;color:var(--mu)}.ly button{height:28px;padding:0 8px}
+.mu{font-size:12px;line-height:1.45}
+#v{display:flex;justify-content:center;padding:18px;border-radius:16px;background:radial-gradient(circle at 50% 35%,var(--pn),var(--bg) 85%)}
+#v svg{width:min(100%,calc(100vh - 190px));width:min(100%,calc(100dvh - 190px));min-width:240px;max-width:none;margin:0;filter:drop-shadow(0 8px 20px rgba(0,0,0,.22))}
+@media(min-width:861px){aside{position:sticky;top:16px;max-height:calc(100vh - 100px);max-height:calc(100dvh - 100px);overflow:auto;padding:0 6px 0 0}}
+@media(max-width:860px){.app{padding:12px;gap:10px}aside{flex:1 1 100%}main{order:-1;flex:1 1 100%;top:0;z-index:5;padding-bottom:6px;background:var(--bg)}#v{padding:8px}#v svg{width:min(100%,42vh);width:min(100%,42dvh);min-width:200px}.top{padding:10px 14px}}
+</style></head><body>
+<header class="top"><b>Disc golf</b><span>generátor mapy na disk Ø 17 cm</span></header><div class="app">
+<aside>
+<details open><summary>1 · Data hřiště</summary>
+<p class="mu">Nahrajte jeden či více souborů: GeoJSON, KML, GPX nebo CSV se sloupci lon a lat (nejlépe WGS84 / EPSG:4326; shapefile či GPKG nejdřív exportujte v QGISu do GeoJSON). Každý soubor je jedna vrstva; pokud mají prvky atribut vrstva / layer / typ, rozdělí se podle něj. Číslo jamky se čte z atributu hole, jamka, cislo nebo number.</p>
+<input type="file" id="gj" multiple><p class="mu" id="dm"></p>
+<div id="ly"></div></details>
+
+<details open><summary>2 · Disk a barvy</summary>
+<div class="r"><button data-p="0">Zelená</button><button data-p="1">Béžová</button><button data-p="2">Šedá</button></div>
+<label><span>Obvod</span><input type="color" id="ring" data-k="ring"></label>
+<label><span>Pozadí mapy</span><input type="color" id="face" data-k="face"></label>
+<label><span>Akcent</span><input type="color" id="accent" data-k="accent"></label>
+<label><span>Písmo na obvodu</span><input type="color" id="txt" data-k="txt"></label>
+<label><span>Karty (tabulka)</span><input type="color" id="card" data-k="card"></label>
+<label><span>Otočení mapy</span><input type="range" id="rot" min="-180" max="180" data-k="rot"><button id="auto">Auto</button></label>
+<label><span>Zoom</span><input type="range" min=".4" max="3" step=".02" data-k="zoom"></label>
+<label><span>Posun vodorovně</span><input type="range" min="-250" max="250" data-k="px"></label>
+<label><span>Posun svisle</span><input type="range" min="-250" max="250" data-k="py"></label></details>
+
+<details open><summary>3 · Texty a maskot</summary>
+<label><span>Název</span><input type="text" data-k="title"></label>
+<p class="mu">Název se rozdělí kolem maskota; pro vlastní dělení použijte svislou čáru (např. CAPYBARA | CAPYBARA).</p>
+<label><span>Typ disku</span><select data-k="type"><option>PUTTER</option><option>MIDRANGE</option><option selected>FAIRWAY</option><option>DRIVER</option></select></label>
+<label><span>Místo</span><input type="text" data-k="place"></label>
+<label><span>Let (speed, glide, turn, fade)</span></label>
+<div class="r"><input type="text" data-k="fl.0" style="width:60px"><input type="text" data-k="fl.1" style="width:60px"><input type="text" data-k="fl.2" style="width:60px"><input type="text" data-k="fl.3" style="width:60px"></div>
+<label><span>Písmo</span><input type="text" data-k="font"></label>
+<label><span>Maskot (PNG)</span><input type="file" id="mas" accept="image/*"><button id="nomas">Odebrat</button></label></details>
+
+<details open><summary>4 · Tabulka, legenda, měřítko</summary>
+<label><input type="checkbox" data-k="showT">Tabulka jamek</label>
+<label><input type="checkbox" data-k="showL">Legenda (z vrstev se zaškrtnutou legendou)</label>
+<label><input type="checkbox" data-k="showS">Měřítko</label>
+<label><span>Počet jamek</span><select data-k="nh" id="nh"></select></label>
+<div class="hr mu"><span>#</span><span>Vzdálenost (m)</span><span>Hody</span></div>
+<div id="hr"></div><div class="r"><button id="rst">Obnovit polohu prvků</button></div><p class="mu">Legendu, tabulku i měřítko přetáhněte myší přímo v náhledu.</p></details>
+
+<details open><summary>5 · Export pro tisk</summary>
+<label><span>Rozlišení</span><select id="dpi"><option>150</option><option selected>300</option><option>600</option></select></label>
+<div class="r"><button class="p" id="bPdf">PDF 170 mm</button><button id="bPng">PNG</button><button id="bSvg">SVG (vektor)</button></div>
+<p class="mu" id="st">PDF a PNG jsou rastrové v zadaném rozlišení, SVG je vektorový (písmo se bere z vašeho systému).</p></details>
+</aside>
+<main><div id="v"></div><p class="mu" style="text-align:center">Průměr disku 170 mm</p></main>
+</div>
+<script>
+const $=i=>document.getElementById(i),C=321.5,esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const S={off:{legenda:[0,0],tabulka:[0,0],meritko:[0,0]},ring:"#1D4A2A",face:"#6AA543",accent:"#E58A24",txt:"#F4EEDC",card:"#FDFBF0",title:"CAPYBARA CAPYBARA",type:"FAIRWAY",place:"PROSTĚJOV · HLOUČELA",fl:["7","5","-2","1"],font:"Trebuchet MS, Verdana, Arial, sans-serif",rot:0,zoom:1,px:0,py:0,mascot:null,showT:1,showL:1,showS:1,nh:9,holes:Array.from({length:18},()=>({d:"",p:3}))};
+let layers=[],org=null,bad=0;
+// z-order od spodu; vzory (nejspecifičtější testujeme jako první, tj. odshora)
+const G=[[/zastav|landuse|okol|urban|osm/i,{fill:"#EAE3CE",fo:1,w:0,fit:0}],[/silnic|ulic|road|street|highway/i,{stroke:"#D2C9AE",fo:0,w:1,fit:0}],[/bud|build/i,{fill:"#D9D0B8",fo:1,w:0,fit:0}],[/les|forest|wood/i,{fill:"#2F6B35",fo:1,w:0,tex:"trees",tc:"#143d1a",ts:14,to:.6}],[/dr[aá]ha|fairway/i,{fill:"#B9CBA5",stroke:"#8F9E86",fo:1,w:1}],[/[rř]ek|potok|river|stream|water|voda/i,{stroke:"#0B46A8",fo:0,w:3}],[/cest|path|trail|stezk/i,{stroke:"#C98B64",fo:0,w:2}],[/stop|ide[aá]l|flight|line/i,{stroke:"#4A4A4A",fo:0,w:1.6,dash:1}],[/strom|tree/i,{fill:"#3F9A45",stroke:"#2D7A33",fo:1,w:1}],[/v[yý]ho|odhod|tee|start/i,{fill:"#22A05A",stroke:"#1B7A45",fo:1,w:1,sym:1,rad:4}],[/ko[sš]|basket/i,{fill:"#F4EEDC",stroke:"#E58A24",fo:1,w:2,sym:2,rad:6}]];
+const TX=[["","žádná"],["hatch","šrafy"],["cross","mřížka"],["dots","tečky"],["trees","koruny stromů"],["waves","vlny"],["img","vlastní obrázek"]];
+const LK=["hole","jamka","cislo","číslo","number","num","poradi","pořadí"];
+const LL=a=>Math.abs(a[0])<=180&&Math.abs(a[1])<=90;
+function pj(c){if(!org)org=[c[0],c[1]];if(LL(c)!==LL(org))bad=1;return LL(org)?[(c[0]-org[0])*111320*Math.cos(org[1]*Math.PI/180),-(c[1]-org[1])*110540]:[c[0]-org[0],-(c[1]-org[1])]}
+function geoms(g,lab,o){if(!g)return;const c=g.coordinates,t=g.type;
+if(t==="GeometryCollection")g.geometries.forEach(x=>geoms(x,lab,o));
+else if(t==="Point")o.push({t:"T",r:[[pj(c)]],lab});
+else if(t==="MultiPoint")c.forEach(p=>o.push({t:"T",r:[[pj(p)]],lab}));
+else if(t==="LineString")o.push({t:"L",r:[c.map(pj)],lab});
+else if(t==="MultiLineString")o.push({t:"L",r:c.map(r=>r.map(pj)),lab});
+else if(t==="Polygon")o.push({t:"P",r:c.map(r=>r.map(pj)),lab});
+else if(t==="MultiPolygon")c.forEach(q=>o.push({t:"P",r:q.map(r=>r.map(pj)),lab}))}
+function mk(nm,sh){let i=-1,st={fill:"#cccccc",fo:1,stroke:"#555555",w:1,dash:0,fit:1,sym:0,rad:3.5,tex:"",tc:"#000000",ts:14,ta:45,to:.5};for(let j=G.length-1;j>=0;j--)if(G[j][0].test(nm)){i=j;break}
+if(i>=0)Object.assign(st,G[i][1]);else if(sh[0]&&sh[0].t==="L")st.fo=0;
+return{name:nm,id:nm.replace(/\W+/g,"_")||"vrstva",sh,z:i>=0?i:5,vis:1,leg:+(i>=0&&st.fit!==0),lab:+(/dr[aá]ha|fairway|jamk|hole/i.test(nm)&&sh.some(s=>s.lab!=null)),...st}}
+function toFeatures(t,name){t=t.replace(/^\uFEFF/,"").trim();
+if(t[0]==="{"||t[0]==="["){const j=JSON.parse(t),crs=j.crs&&j.crs.properties&&j.crs.properties.name;if(crs&&!/4326|CRS84/i.test(crs))dm("Pozor: "+name+" má CRS "+crs+" – nejlepší je export v EPSG:4326.");return j.type==="FeatureCollection"?j.features:j.type==="Feature"?[j]:Array.isArray(j)?j:[{geometry:j,properties:{}}]}
+if(t[0]==="<"){const d=new DOMParser().parseFromString(t,"text/xml"),q=(e,n)=>[...e.getElementsByTagName(n)],cs=s=>s.trim().split(/\s+/).map(a=>a.split(",").map(Number)),o=[];
+q(d,"Placemark").forEach(p=>{const nm=((q(p,"name")[0]||{}).textContent||"").trim(),pr=/^\d+$/.test(nm)?{hole:nm}:{};
+q(p,"Point").forEach(x=>o.push({geometry:{type:"Point",coordinates:cs(q(x,"coordinates")[0].textContent)[0]},properties:pr}));
+q(p,"LineString").forEach(x=>o.push({geometry:{type:"LineString",coordinates:cs(q(x,"coordinates")[0].textContent)},properties:pr}));
+q(p,"Polygon").forEach(x=>o.push({geometry:{type:"Polygon",coordinates:q(x,"coordinates").map(c=>cs(c.textContent))},properties:pr}))});
+q(d,"wpt").forEach(w=>o.push({geometry:{type:"Point",coordinates:[+w.getAttribute("lon"),+w.getAttribute("lat")]},properties:{}}));
+q(d,"trkseg").concat(q(d,"rte")).forEach(s=>o.push({geometry:{type:"LineString",coordinates:q(s,"trkpt").concat(q(s,"rtept")).map(p=>[+p.getAttribute("lon"),+p.getAttribute("lat")])},properties:{}}));
+if(!o.length)throw Error("v souboru nejsou žádné body, čáry ani plochy.");return o}
+const ln=t.split(/\r?\n/).filter(Boolean),dl=[";","\t",","].find(c=>ln[0].includes(c))||",",num=s=>parseFloat(String(s).trim().replace(",",".")),un=s=>s.trim().replace(/^"|"$/g,""),h=ln[0].split(dl).map(un);
+let ix=h.findIndex(s=>/^(lon|lng|long|longitude|x|e|easting)$/i.test(s)),iy=h.findIndex(s=>/^(lat|latitude|y|n|northing)$/i.test(s)),st=1;
+if(ix<0||iy<0){if(!isNaN(num(h[0]))&&!isNaN(num(h[1]))){ix=0;iy=1;st=0}else throw Error("v CSV chybí sloupce lon a lat (nebo x a y).")}
+const o=ln.slice(st).map(r=>{const c=r.split(dl).map(un),pr={};h.forEach((k,i)=>pr[k]=c[i]);return{geometry:{type:"Point",coordinates:[num(c[ix]),num(c[iy])]},properties:pr}}).filter(x=>x.geometry.coordinates.every(v=>!isNaN(v)));
+if(!o.length)throw Error("v CSV nejsou čitelné souřadnice.");return o}
+async function load(files){$("dm").innerHTML="";for(const f of files){let fe;try{fe=toFeatures(await f.text(),f.name)}catch(e){dm("✗ "+f.name+": "+(e.message||"nelze přečíst")+" Podporuji GeoJSON, KML, GPX a CSV.");continue}
+const grp={},nog=fe.filter(ft=>!ft.geometry).length;bad=0;
+fe.forEach(ft=>{const pr=ft.properties||{},kk=Object.keys(pr),lk=kk.find(k=>LK.includes(k.toLowerCase())),sk=kk.find(k=>["vrstva","layer","typ","type","kategorie"].includes(k.toLowerCase())),nm=sk&&pr[sk]!=null?String(pr[sk]):f.name.replace(/\.\w+$/,"");(grp[nm]=grp[nm]||[]);geoms(ft.geometry,lk?pr[lk]:null,grp[nm])});
+let cnt=0;Object.entries(grp).forEach(([n,sh])=>{if(sh.length){layers.push(mk(n,sh));cnt+=sh.length}});dm((cnt?"✓ ":"✗ ")+f.name+": "+cnt+" prvků"+(cnt?"":nog?" – "+nog+" prvků má geometry: null, soubor obsahuje jen atributy bez souřadnic. Exportujte vrstvu znovu včetně geometrie.":" – žádná použitelná geometrie")+(bad?". POZOR: souřadnice se liší od předchozích vrstev (jiný CRS), vrstva může ležet mimo mapu – exportujte vše v EPSG:4326.":""))}
+layers.sort((a,b)=>a.z-b.z);autoRot();ui()}
+function pts(){const P=[];layers.forEach(l=>l.vis&&l.fit&&l.sh.forEach(s=>s.r.forEach(r=>r.forEach(p=>P.push(p)))));return P}
+function autoRot(){const P=pts();if(P.length<2)return;const m=P.reduce((a,p)=>[a[0]+p[0],a[1]+p[1]],[0,0]).map(v=>v/P.length);let a=0,b=0,c=0;P.forEach(p=>{const x=p[0]-m[0],y=p[1]-m[1];a+=x*x;b+=y*y;c+=x*y});let r=90-.5*Math.atan2(2*c,a-b)*180/Math.PI;S.rot=Math.round(((r+90)%180+180)%180-90);$("rot").value=S.rot}
+function view(){const a=S.rot*Math.PI/180,co=Math.cos(a),si=Math.sin(a),R=p=>[p[0]*co-p[1]*si,p[0]*si+p[1]*co];let x0=1e9,x1=-1e9,y0=1e9,y1=-1e9;const P=pts();P.forEach(p=>{const q=R(p);x0=Math.min(x0,q[0]);x1=Math.max(x1,q[0]);y0=Math.min(y0,q[1]);y1=Math.max(y1,q[1])});if(!P.length){x0=y0=-100;x1=y1=100}
+const k=S.zoom*.95*572/(Math.hypot(x1-x0,y1-y0)||1),mx=(x0+x1)/2,my=(y0+y1)/2;return{k,T:p=>{const q=R(p);return[C+(q[0]-mx)*k+ +S.px,C+(q[1]-my)*k+ +S.py]}}}
+const f1=n=>n.toFixed(1);
+function pat(l,id){const s=+l.ts||14,c=l.tc,w=Math.max(.6,s*.1);let b="";
+if(l.tex==="hatch")b=`<path d="M0 0V${s}" stroke="${c}" stroke-width="${w}"/>`;
+else if(l.tex==="cross")b=`<path d="M0 0V${s}M0 0H${s}" stroke="${c}" stroke-width="${w}"/>`;
+else if(l.tex==="dots")b=`<circle cx="${s/2}" cy="${s/2}" r="${s*.15}" fill="${c}"/>`;
+else if(l.tex==="trees")b=`<g fill="${c}"><circle cx="${s*.28}" cy="${s*.3}" r="${s*.2}"/><circle cx="${s*.74}" cy="${s*.24}" r="${s*.15}"/><circle cx="${s*.55}" cy="${s*.72}" r="${s*.23}"/></g>`;
+else if(l.tex==="waves")b=`<path d="M0 ${s/2}Q${s/4} ${s*.1} ${s/2} ${s/2}T${s} ${s/2}" fill="none" stroke="${c}" stroke-width="${w}"/>`;
+else if(l.tex==="img"&&l.timg)b=`<image href="${l.timg}" width="${s}" height="${s}" preserveAspectRatio="xMidYMid slice"/>`;
+return b?`<pattern id="${id}" patternUnits="userSpaceOnUse" width="${s}" height="${s}" patternTransform="rotate(${l.ta})">${b}</pattern>`:""}
+function lay(l,T){let pa="",pt="",lb="";const isP=l.sh.some(s=>s.t==="P"),isT=l.sh.some(s=>s.t==="T");
+l.sh.forEach(s=>{const R=s.r.map(r=>r.map(T));if(s.t==="T")R.forEach(r=>{const x=r[0][0],y=r[0][1],d=+l.rad;pt+=l.icon?`<image href="${l.icon}" x="${f1(x-d)}" y="${f1(y-d)}" width="${f1(2*d)}" height="${f1(2*d)}" preserveAspectRatio="xMidYMid meet"/>`:l.sym==1?`<rect x="${f1(x-d)}" y="${f1(y-d)}" width="${f1(2*d)}" height="${f1(2*d)}" rx="1"/>`:l.sym==2?`<circle cx="${f1(x)}" cy="${f1(y)}" r="${d}" stroke-dasharray="2 1.5"/><path d="M${f1(x-d+1)} ${f1(y)}h${f1(2*d-2)}M${f1(x)} ${f1(y-d+1)}v${f1(2*d-2)}M${f1(x-d*.7)} ${f1(y-d*.7)}l${f1(d*1.4)} ${f1(d*1.4)}M${f1(x+d*.7)} ${f1(y-d*.7)}l${f1(-d*1.4)} ${f1(d*1.4)}" stroke="#333" stroke-width=".7" fill="none" stroke-dasharray="none"/>`:`<circle cx="${f1(x)}" cy="${f1(y)}" r="${d}"/>`});else pa+=R.map(r=>"M"+r.map(p=>f1(p[0])+" "+f1(p[1])).join("L")+(s.t==="P"?"Z":"")).join("");
+if(l.lab&&s.lab!=null){const q=R[0],m=q.reduce((a,p)=>[a[0]+p[0]/q.length,a[1]+p[1]/q.length],[0,0]);lb+=`<text x="${f1(m[0])}" y="${f1(m[1]+3)}">${esc(s.lab)}</text>`}});
+const pid="tx"+layers.indexOf(l),pp=isP&&l.tex&&pa?pat(l,pid):"",tov=pp?pp+`<path d="${pa}" fill="url(#${pid})" fill-opacity="${l.to}" fill-rule="evenodd" stroke="none"/>`:"";
+const fill=(isP||isT)&&l.fo>0?`fill="${l.fill}" fill-opacity="${l.fo}"`:'fill="none"';
+return`<g id="${esc(l.id)}" ${fill} stroke="${l.stroke}" stroke-width="${l.w}" stroke-linejoin="round" stroke-linecap="round"${l.dash?` stroke-dasharray="${l.w*3} ${l.w*2.2}"`:""}>`+(pa?`<path fill-rule="evenodd" d="${pa}"${isP?"":' fill="none"'}/>`:"")+pt+"</g>"+tov+(lb?`<g font-weight="800" font-size="9" text-anchor="middle" fill="#1d3b26" stroke="#f4eedc" stroke-width="2.2" paint-order="stroke">${lb}</g>`:"")}
+const lum=h=>{const n=parseInt(h.slice(1),16);return(.299*(n>>16)+.587*(n>>8&255)+.114*(n&255))/255};
+function build(){const{k,T}=view(),U=s=>esc(String(s).toUpperCase()),ink=lum(S.face)<.55?"#F4EEDC":"#2a2a1e",dk="#3a3a2c";
+let L1,L2;if(S.title.includes("|"))[L1,L2]=S.title.split("|").map(s=>s.trim());else{const w=S.title.trim().split(/\s+/).filter(Boolean),h=Math.ceil(w.length/2);L1=w.slice(0,h).join(" ");L2=w.slice(h).join(" ")}
+const tx=(p,o,a,s,w,ls,t)=>`<text font-size="${s}" font-weight="${w}" letter-spacing="${ls}" fill="${S.txt}"><textPath href="#${p}" startOffset="${o}" text-anchor="${a}">${U(t)}</textPath></text>`;
+const mas=S.mascot?`<circle cx="321.5" cy="17.75" r="16.5" fill="${S.txt}"/><image href="${S.mascot}" x="306.5" y="2.75" width="30" height="30" preserveAspectRatio="xMidYMid meet" clip-path="url(#mc)"/>`:`<circle cx="321.5" cy="17.75" r="5" fill="${S.accent}"/>`;
+let lg="";const ls=layers.filter(l=>l.vis&&l.leg);
+if(S.showL&&ls.length){const h=ls.length*17+12,y0=C-h/2;lg=`<g id="legenda"${tr("legenda")}><rect x="70" y="${f1(y0)}" width="132" height="${h}" rx="8" fill="${S.card}" stroke="${S.accent}" stroke-width="1.5"/>`+ls.map((l,i)=>{const cy=y0+14+i*17,t=l.sh.some(s=>s.t==="T")?"T":l.sh.some(s=>s.t==="P")?"P":"L",sw=Math.min(l.w,1.5);
+const ic=t==="P"?`<rect x="78" y="${cy-4}" width="16" height="8" rx="2" fill="${l.fill}" fill-opacity="${l.fo}" stroke="${l.stroke}" stroke-width="${sw}"/>`:t==="T"?l.icon?`<image href="${l.icon}" x="79" y="${cy-6}" width="12" height="12"/>`:`<circle cx="86" cy="${cy}" r="4" fill="${l.fill}" stroke="${l.stroke}" stroke-width="${sw}"/>`:`<path d="M78 ${cy}H94" stroke="${l.stroke}" stroke-width="${Math.min(l.w,3)}"${l.dash?' stroke-dasharray="4 3"':""} stroke-linecap="round"/>`;
+return ic+`<text x="100" y="${cy+3}" font-size="8.5" font-weight="700" fill="${dk}">${esc(l.name)}</text>`}).join("")+"</g>"}
+let tb="";if(S.showT){const n=+S.nh,rh=n>9?162/n:18,h=30+n*rh+22,y0=C-h/2,x0=442,w=124,fs=Math.min(11.5,rh*.64),cx=[x0+19,x0+60,x0+102],H=S.holes.slice(0,n),ds=H.map(o=>parseFloat(String(o.d).replace(",","."))).filter(v=>!isNaN(v)),sd=ds.length?Math.round(ds.reduce((a,b)=>a+b,0)):"—",sp=H.reduce((a,o)=>a+(+o.p||0),0)||"—";
+const T2=(x,y,t,s,c)=>`<text x="${x}" y="${f1(y)}" text-anchor="middle" font-size="${s}" font-weight="700" fill="${c}">${esc(t)}</text>`;
+tb=`<g id="tabulka"${tr("tabulka")}><clipPath id="tc"><rect x="${x0}" y="${f1(y0)}" width="${w}" height="${f1(h)}" rx="8"/></clipPath><g clip-path="url(#tc)"><rect x="${x0}" y="${f1(y0)}" width="${w}" height="${f1(h)}" fill="${S.card}"/><rect x="${x0}" y="${f1(y0)}" width="${w}" height="30" fill="${S.ring}"/>`+H.map((o,i)=>i%2?`<rect x="${x0}" y="${f1(y0+30+i*rh)}" width="${w}" height="${f1(rh)}" fill="#000" fill-opacity=".07"/>`:"").join("")+`<rect x="${x0}" y="${f1(y0+30+n*rh)}" width="${w}" height="22" fill="${S.accent}"/></g>`+
+T2(cx[0],y0+19,"JAMKA",8.5,S.txt)+T2(cx[1],y0+13,"VZDÁL.",8.5,S.txt)+T2(cx[1],y0+23,"(m)",8.5,S.txt)+T2(cx[2],y0+13,"POČET",8.5,S.txt)+T2(cx[2],y0+23,"HODŮ",8.5,S.txt)+
+H.map((o,i)=>{const y=y0+30+i*rh+rh/2+fs*.35;return T2(cx[0],y,i+1,fs,dk)+T2(cx[1],y,o.d===""?"—":o.d,fs,dk)+T2(cx[2],y,o.p,fs,dk)}).join("")+
+T2(cx[0],y0+30+n*rh+15,"Σ",12,"#1d2a1a")+T2(cx[1],y0+30+n*rh+15,sd,12,"#1d2a1a")+T2(cx[2],y0+30+n*rh+15,sp,12,"#1d2a1a")+"</g>"}
+let sb="";if(S.showS){const m=[500,200,100,50,20,10].find(v=>v*k<=125)||10,w=m*k,x=112,y=508;sb=`<g id="meritko"${tr("meritko")}><g stroke="${ink}" stroke-width="1.4" fill="none"><path d="M${x} ${y}H${f1(x+w)}M${x} ${y-4}V${y+4}M${f1(x+w)} ${y-4}V${y+4}"/></g><g font-size="10" font-weight="800" fill="${ink}" text-anchor="middle"><text x="${x}" y="${y-8}">0</text><text x="${f1(x+w)}" y="${y-8}">${m} m</text></g></g>`}
+const ff=esc(S.font).replace(/&quot;/g,"'");
+return`<svg xmlns="http://www.w3.org/2000/svg" width="170mm" height="170mm" viewBox="0 0 643 643" style="font-family:${ff}"><defs><path id="aT" d="M27.5 321.5A294 294 0 0 1 615.5 321.5"/><path id="aB" d="M11.5 321.5A310 310 0 0 0 631.5 321.5"/><clipPath id="fc"><circle cx="${C}" cy="${C}" r="286"/></clipPath><clipPath id="mc"><circle cx="321.5" cy="17.75" r="15.5"/></clipPath></defs>`+
+`<g id="pozadi"><circle cx="${C}" cy="${C}" r="${C}" fill="${S.ring}"/><circle cx="${C}" cy="${C}" r="286" fill="${S.face}"/></g><g id="mapa" clip-path="url(#fc)">${layers.filter(l=>l.vis).map(l=>lay(l,T)).join("")}</g><circle cx="${C}" cy="${C}" r="286" fill="none" stroke="${S.accent}" stroke-width="3"/>`+
+`<g id="texty">${tx("aT",437.8,"end",25,900,7,L1)+tx("aT",485.8,"start",25,900,7,L2)+tx("aB",130,"start",17,800,2,S.type)+tx("aB",487,"middle",17,800,2,S.place)+tx("aB",844,"end",17,800,2,S.fl.join(", "))}<circle cx="17.75" cy="${C}" r="5" fill="${S.accent}"/><circle cx="625.25" cy="${C}" r="5" fill="${S.accent}"/></g><g id="maskot">${mas}</g>${lg}${tb}${sb}</svg>`}
+const tr=n=>{const o=S.off[n];return o[0]||o[1]?` transform="translate(${o[0].toFixed(1)} ${o[1].toFixed(1)})"`:""};
+function draw(){$("v").innerHTML=build()}
+function setv(k,v){const p=k.split(".");let o=p[0]==="L"?(p.shift(),layers):S;while(p.length>1)o=o[p.shift()];o[p[0]]=v}
+function ui(){$("ly").innerHTML=layers.map((l,i)=>`<div class="ly"><div class="r"><input type="checkbox" data-k="L.${i}.vis"${l.vis?" checked":""}><input type="text" data-k="L.${i}.name" value="${esc(l.name)}"><button data-m="u${i}">▲</button><button data-m="d${i}">▼</button><button data-m="x${i}">✕</button></div><div class="r"><label>výplň <input type="color" data-k="L.${i}.fill" value="${l.fill}"></label><input type="range" min="0" max="1" step=".05" data-k="L.${i}.fo" value="${l.fo}" title="Průhlednost výplně"><label>čára <input type="color" data-k="L.${i}.stroke" value="${l.stroke}"></label><input type="number" min="0" max="12" step=".5" data-k="L.${i}.w" value="${l.w}" style="max-width:60px"></div><div class="r">${[["dash","čárkovaně"],["leg","legenda"],["fit","rámuje výřez"],["lab","čísla jamek"]].map(([a,t])=>`<label><input type="checkbox" data-k="L.${i}.${a}"${l[a]?" checked":""}>${t}</label>`).join("")}${l.sh.some(s=>s.t==="T")?`<label>symbol <select data-k="L.${i}.sym"><option value="0"${l.sym==0?" selected":""}>kruh</option><option value="1"${l.sym==1?" selected":""}>čtverec</option><option value="2"${l.sym==2?" selected":""}>koš</option></select></label><label>velikost <input type="number" min="1" max="30" step=".5" data-k="L.${i}.rad" value="${l.rad}" style="max-width:60px"></label><label>ikona <input type="file" accept=".svg,.png,image/*" data-ic="${i}"></label>${l.icon?`<button data-m="n${i}">bez ikony</button>`:""}`:""}</div>${l.sh.some(s=>s.t==="P")?`<div class="r"><label>textura <select data-k="L.${i}.tex">${TX.map(([v,t])=>`<option value="${v}"${l.tex===v?" selected":""}>${t}</option>`).join("")}</select></label><label>barva <input type="color" data-k="L.${i}.tc" value="${l.tc}"></label><label>rozteč <input type="number" min="3" max="120" data-k="L.${i}.ts" value="${l.ts}" style="max-width:60px"></label><label>úhel <input type="range" min="0" max="180" data-k="L.${i}.ta" value="${l.ta}"></label><label>průhl. <input type="range" min="0" max="1" step=".05" data-k="L.${i}.to" value="${l.to}"></label><label>dlaždice <input type="file" accept="image/*" data-tx="${i}"></label></div>`:""}</div>`).join("")||'<p class="mu">Zatím žádná data – disk zatím ukazuje jen rám.</p>';draw()}
+function hrows(){$("hr").innerHTML=S.holes.slice(0,S.nh).map((o,i)=>`<div class="hr"><b>${i+1}</b><input type="text" inputmode="decimal" data-k="holes.${i}.d" value="${esc(o.d)}"><input type="number" min="1" max="9" data-k="holes.${i}.p" value="${o.p}"></div>`).join("")}
+function msg(t){$("st").textContent=t}
+const dm=t=>{$("dm").innerHTML+=esc(t)+"<br>"};
+document.addEventListener("input",e=>{const t=e.target,k=t.dataset.k;if(!k)return;const v=t.type==="checkbox"?+t.checked:t.type==="number"||t.type==="range"?+t.value:t.value;setv(k,v);if(k==="nh")hrows();draw()});
+document.addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;
+if(b.dataset.p){const c=["#6AA543","#EAE3CE","#D4D2D0"][b.dataset.p];S.face=c;$("face").value=c;draw()}
+if(b.dataset.m){const a=b.dataset.m[0],i=+b.dataset.m.slice(1);if(a==="x")layers.splice(i,1);else if(a==="n"){layers[i].icon=null;layers[i].rad=3.5}else{const j=a==="u"?i+1:i-1;if(j>=0&&j<layers.length)[layers[i],layers[j]]=[layers[j],layers[i]]}ui()}});
+document.addEventListener("change",e=>{const t=e.target,f=t.files&&t.files[0];if(!f||(t.dataset.ic==null&&t.dataset.tx==null))return;const r=new FileReader();r.onload=()=>{if(t.dataset.ic!=null){const l=layers[t.dataset.ic];l.icon=r.result;l.rad=Math.max(l.rad,8)}else{const l=layers[t.dataset.tx];l.timg=r.result;l.tex="img"}ui()};r.readAsDataURL(f)});
+let dr=null;
+$("v").addEventListener("pointerdown",e=>{const g=e.target.closest&&e.target.closest("#legenda,#tabulka,#meritko"),sv=$("v").firstElementChild;if(!g||!sv)return;dr={g,x:e.clientX,y:e.clientY,u:643/sv.getBoundingClientRect().width,o:[...S.off[g.id]]};e.preventDefault()});
+window.addEventListener("pointermove",e=>{if(!dr)return;const o=S.off[dr.g.id];o[0]=dr.o[0]+(e.clientX-dr.x)*dr.u;o[1]=dr.o[1]+(e.clientY-dr.y)*dr.u;dr.g.setAttribute("transform",`translate(${o[0].toFixed(1)} ${o[1].toFixed(1)})`)});
+window.addEventListener("pointerup",()=>{if(dr){dr=null;draw()}});
+$("rst").onclick=()=>{for(const k in S.off)S.off[k]=[0,0];draw()};
+$("gj").onchange=e=>{load([...e.target.files]);e.target.value=""};
+$("auto").onclick=()=>{autoRot();S.zoom=1;S.px=S.py=0;document.querySelectorAll('[data-k=zoom],[data-k=px],[data-k=py]').forEach(x=>x.value=x.dataset.k==="zoom"?1:0);draw()};
+$("mas").onchange=e=>{const r=new FileReader();r.onload=()=>{S.mascot=r.result;draw()};e.target.files[0]&&r.readAsDataURL(e.target.files[0])};
+$("nomas").onclick=()=>{S.mascot=null;$("mas").value="";draw()};
+// export
+async function raster(type){const px=Math.round(170/25.4*$("dpi").value),im=new Image();im.src="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(build());await im.decode();const c=document.createElement("canvas");c.width=c.height=px;const x=c.getContext("2d");if(type==="jpg"){x.fillStyle="#fff";x.fillRect(0,0,px,px)}x.drawImage(im,0,0,px,px);return{px,blob:await new Promise(r=>c.toBlob(r,type==="jpg"?"image/jpeg":"image/png",.95))}}
+function pdf(j,n){const P=481.89,e=new TextEncoder(),parts=[],off=[];let len=0;const add=x=>{const b=typeof x==="string"?e.encode(x):x;parts.push(b);len+=b.length},obj=(i,s)=>{off[i]=len;add(`${i} 0 obj\n${s}\nendobj\n`)};
+add("%PDF-1.4\n");obj(1,"<</Type/Catalog/Pages 2 0 R>>");obj(2,"<</Type/Pages/Kids[3 0 R]/Count 1>>");obj(3,`<</Type/Page/Parent 2 0 R/MediaBox[0 0 ${P} ${P}]/Resources<</XObject<</I 4 0 R>>>>/Contents 5 0 R>>`);
+off[4]=len;add(`4 0 obj\n<</Type/XObject/Subtype/Image/Width ${n}/Height ${n}/ColorSpace/DeviceRGB/BitsPerComponent 8/Filter/DCTDecode/Length ${j.length}>>\nstream\n`);add(j);add("\nendstream\nendobj\n");
+const c=`q ${P} 0 0 ${P} 0 0 cm /I Do Q`;obj(5,`<</Length ${c.length}>>\nstream\n${c}\nendstream`);const x=len;
+add("xref\n0 6\n0000000000 65535 f \n"+[1,2,3,4,5].map(i=>String(off[i]).padStart(10,"0")+" 00000 n \n").join("")+`trailer\n<</Size 6/Root 1 0 R>>\nstartxref\n${x}\n%%EOF`);return new Blob(parts,{type:"application/pdf"})}
+async function save(name,data){const d=await window.claude?.use("downloads");if(!d){const u=URL.createObjectURL(data instanceof Blob?data:new Blob([data])),a=document.createElement("a");a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),5000);msg("Hotovo: "+name+" (zkontrolujte složku Stažené soubory)");return}try{await d.save({filename:name,data});msg("Hotovo: "+name)}catch(e){msg(e.code==="declined"?"Uložení zrušeno.":"Uložení se nepovedlo ("+(e.code||"chyba")+").")}}
+$("bSvg").onclick=()=>save("disk_17cm.svg",new Blob([build()],{type:"image/svg+xml"}));
+$("bPng").onclick=async()=>{msg("Vykresluji…");try{save("disk_17cm.png",(await raster("png")).blob)}catch{msg("Vykreslení se nepovedlo.")}};
+$("bPdf").onclick=async()=>{msg("Vykresluji…");try{const r=await raster("jpg");save("disk_17cm.pdf",pdf(new Uint8Array(await r.blob.arrayBuffer()),r.px))}catch{msg("Vykreslení se nepovedlo.")}};
+// init
+$("nh").innerHTML=Array.from({length:18},(_,i)=>`<option${i===8?" selected":""}>${i+1}</option>`).join("");
+document.querySelectorAll("[data-k]").forEach(e=>{const k=e.dataset.k;if(k.startsWith("L.")||k.startsWith("holes"))return;let v=k.includes(".")?S.fl[k.split(".")[1]]:S[k];if(e.type==="checkbox")e.checked=!!v;else e.value=v});
+hrows();ui();
+</script></body></html>
