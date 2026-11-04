@@ -7,7 +7,7 @@ The goal is to create a fully customizable, print-ready discgolf course map that
 
 Real-world sample data from Discgolf Course Prostějov – Hloučela is available for testing. The dataset includes:
 
-Disc golf course layout
+Discgolf course layout
 
 Forest areas
 
